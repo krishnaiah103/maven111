@@ -1,0 +1,44 @@
+pipeline
+{
+ agent any
+    stages
+     {
+          stage('continuousdownload')
+            {
+               steps
+                {
+                   git 'https://github.com/intelliqittrainings/maven.git'
+                }
+            }
+            stage('continuousbuild')
+            {
+               steps
+                {
+                  sh 'mvn package'
+                }
+            }
+            stage('continuousdeployment')
+            {
+               steps
+                {
+                 deploy adapters: [tomcat9(credentialsId: '1edbaa48-8351-46cb-aee5-a010d909c651', path: '', url: 'http://172.31.86.91:8080')], contextPath: 'testapp', war: '**/*.war'
+                }
+            }
+            stage('continuoustesting')
+            {
+               steps
+                {
+                  git ' https://github.com/intelliqittrainings/FunctionalTesting.git'
+                  sh 'java -jar /var/lib/jenkins/workspace/declaretivepipeline/testing.jar'
+                }
+            }
+             stage('continuousdelivary')
+            {
+               steps
+                {
+                    input message: 'give the permission to equit', submitter: 'renu'
+                   deploy adapters: [tomcat9(credentialsId: '1edbaa48-8351-46cb-aee5-a010d909c651', path: '', url: 'http://172.31.91.169:8080')], contextPath: 'probapp', war: '**/*.war'
+                }
+            }
+     }
+}
